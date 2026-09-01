@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Sistem - BBC</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background-color: #f8f9fa; }
+
+    /* HEADER MERAH */
+    header {
+      height: 85px;
+      background: linear-gradient(135deg, #b71c1c, #d32f2f);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+
+    .logo-container img {
+      height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .header-center { text-align: center; }
+    .greeting-title { font-size: 15px; font-weight: 600; color: #ffffff; }
+    .greeting-date { font-size: 11px; color: #ffcdd2; margin-top: 2px; }
+
+    /* CLOCKS CONTAINER */
+    .clocks-container { display: flex; align-items: center; gap: 12px; }
+    .clock-box { display: flex; flex-direction: column; align-items: center; }
+    .clock-label {
+      font-size: 9px;
+      font-weight: bold;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+    .flag-icon { width: 13px; height: 9px; object-fit: cover; border-radius: 1px; }
+    canvas { background: #ffffff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+    /* MAIN CONTAINER */
+    .main-container { display: flex; flex: 1; height: calc(100vh - 85px); }
+
+    /* SIDEBAR 180px */
+    .sidebar {
+      width: 180px;
+      background: #181818;
+      color: white;
+      padding: 12px 0;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+
+    .sidebar h2 {
+      font-size: 10.5px;
+      padding: 6px 12px;
+      color: #ef5350;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .sidebar ul { list-style: none; overflow-y: auto; }
+    .sidebar li a {
+      color: #cccccc;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 11.5px;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar li a:hover, .sidebar li a.active {
+      background: #282828;
+      color: #ffffff;
+      border-left-color: #e53935;
+    }
+
+    .sidebar .emoji { font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
+    .menu-divider { height: 1px; background: #333333; margin: 8px 0; }
+
+    /* CONTENT AREA */
+    .content-area { flex: 1; height: 100%; background: #ffffff; position: relative; }
+    iframe { width: 100%; height: 100%; border: none; }
+
+    /* WELCOME SCREEN DISPLAY */
+    .welcome-container {
+      width: 100%;
+      height: 100%;
+      background: url('https://lh3.googleusercontent.com/d/1IYn0-BPAVZHVHUQSj9SL_05OW5T_eSDi') no-repeat center center/cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .welcome-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .marquee-box {
+      width: 80%;
+      background: rgba(183, 28, 28, 0.85);
+      padding: 15px 25px;
+      border-radius: 50px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      border: 2px solid #ff8a80;
+    }
+
+    marquee {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    }
+
+    /* LAMAN SURVEY & LINKS KHUSUS */
+    .links-page-container {
+      padding: 30px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .links-page-container h1 {
+      font-size: 20px;
+      color: #c62828;
+      margin-bottom: 6px;
+      border-bottom: 2px solid #ef9a9a;
+      padding-bottom: 8px;
+    }
+
+    .links-page-container p { color: #666; font-size: 13px; margin-bottom: 20px; }
+    .link-card-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .link-item-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      padding: 12px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #333;
+      transition: all 0.2s ease;
+    }
+
+    .link-item-card:hover {
+      background: #ffebee;
+      border-color: #ef5350;
+      transform: translateX(4px);
+    }
+
+    .link-title { 
+      font-weight: 600; 
+      font-size: 13.5px; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      flex: 1;
+    }
+
+    .link-url-tag {
+      font-family: monospace;
+      font-size: 12px;
+      color: #1565c0;
+      background: #e3f2fd;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid #bbdefb;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 15px;
+    }
+
+    .link-action { 
+      font-size: 12.5px; 
+      color: #c62828; 
+      font-weight: bold; 
+      display: flex; 
+      align-items: center; 
+      gap: 4px; 
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-container">
+      <img src="https://lh3.googleusercontent.com/d/1xp4tsE6RhaxXFSC7XQN45_3TOdUsUe5j" alt="Logo BBC" onerror="this.src='https://via.placeholder.com/120x40?text=BBC+Logo'">
+    </div>
+
+    <div class="header-center">
+      <div class="greeting-title" id="greeting">Selamat Datang di Portal BBC</div>
+      <div class="greeting-date" id="current-date">--</div>
+    </div>
+
+    <div class="clocks-container">
+      <div class="clock-box">
+        <canvas id="clock-uk" width="48" height="48"></canvas>
+        <div class="clock-label">
+          <img class="flag-icon" src="https://flagcdn.com/w40/gb.png" alt="UK Flag"> UK (London)
+        </div>
+      </div>
+
+      <div class="clock-box">
+        <canvas id="clock-indo" width="60" height="60"></canvas>
+        <div class="clock-label">
+          <img class="flag-icon" src="https://flagcdn.com/w40/id.png" alt="ID Flag"> WIB (Jakarta)
+        </div>
+      </div>
+
+      <div class="clock-box">
+        <canvas id="clock-us" width="48" height="48"></canvas>
+        <div class="clock-label">
+          <img class="flag-icon" src="https://flagcdn.com/w40/us.png" alt="US Flag"> US (New York)
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <h2>Portal Sistem</h2>
+      <ul>
+        <li><a onclick="loadFrame('https://s.id/bbcneeds', this)"><span class="emoji">✏️</span> Kebutuhan ATK/FC</a></li>
+        <li><a onclick="loadFrame('https://s.id/bbcfc', this)"><span class="emoji">📦</span> Pengecekan ATK</a></li>
+        <li><a onclick="loadSurveyPage(this)"><span class="emoji">📋</span> Survey & Ulasan</a></li>
+        <li><a onclick="loadFrame('https://s.id/bbc-coach', this)"><span class="emoji">📹</span> Order Proyektor</a></li>
+        <li><a onclick="loadFrame('https://s.id/bbc-teacher', this)"><span class="emoji">📅</span> Schedule Teacher</a></li>
+        <li><a onclick="loadFrame('https://s.id/bbc-foto', this)"><span class="emoji">🖼️</span> Photo Album</a></li>
+        <li><a onclick="loadFrame('https://s.id/bbc-book', this)"><span class="emoji">📚</span> Stock Buku</a></li>
+      </ul>
+
+      <div class="menu-divider"></div>
+      <h2>Akses Khusus</h2>
+      <ul>
+        <li><a onclick="openProtected('https://s.id/bbc-admin', '1010', this)"><span class="emoji">🔒</span> Plotting Class</a></li>
+        <li><a onclick="openProtected('https://s.id/bbc-ob', '8070', this)"><span class="emoji">🧹</span> Class Recap (OB)</a></li>
+      </ul>
+    </div>
+
+    <!-- AREA KONTEN UTAMA -->
+    <div class="content-area" id="content-area">
+      <div class="welcome-container">
+        <div class="welcome-overlay">
+          <div class="marquee-box">
+            <marquee behavior="scroll" direction="left" scrollamount="8">
+              ✨ Welcome to BBC's Systems Portal — Silakan pilih menu di panel sebelah kiri untuk memulai ✨
+            </marquee>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadFrame(url, element) {
+      const container = document.getElementById('content-area');
+      container.innerHTML = `<iframe id="main-frame" src="${url}"></iframe>`;
+      updateActiveMenu(element);
+    }
+
+    function loadSurveyPage(element) {
+      const container = document.getElementById('content-area');
+      container.innerHTML = `
+        <div class="links-page-container">
+          <h1>Pusat Survey & Ulasan BBC</h1>
+          <p>Klik salah satu tautan di bawah ini untuk membuka formulir survey atau ulasan pada tab baru.</p>
+          
+          <div class="link-card-list">
+            <a href="https://s.id/bbcskpawal" target="_blank" class="link-item-card">
+              <span class="link-title">📝 Survey Kepuasan Pelanggan Awal</span>
+              <span class="link-url-tag">🌐 s.id/bbcskpawal</span>
+              <span class="link-action">Buka Tautan 👈</span>
+            </a>
+            <a href="https://s.id/bbcskpakhir" target="_blank" class="link-item-card">
+              <span class="link-title">🎓 Survey Kepuasan Pelanggan Akhir</span>
+              <span class="link-url-tag">🌐 s.id/bbcskpakhir</span>
+              <span class="link-action">Buka Tautan 👈</span>
+            </a>
+            <a href="https://s.id/bbcstart" target="_blank" class="link-item-card">
+              <span class="link-title">💡 Understanding Form</span>
+              <span class="link-url-tag">🌐 s.id/bbcstart</span>
+              <span class="link-action">Buka Tautan 👈</span>
+            </a>
+            <a href="https://s.id/bbcmaps" target="_blank" class="link-item-card">
+              <span class="link-title">⭐ Review Google Maps</span>
+              <span class="link-url-tag">🌐 s.id/bbcmaps</span>
+              <span class="link-action">Buka Tautan 👈</span>
+            </a>
+            <a href="https://s.id/bbcsurvey" target="_blank" class="link-item-card">
+              <span class="link-title">👥 Survey Tamu</span>
+              <span class="link-url-tag">🌐 s.id/bbcsurvey</span>
+              <span class="link-action">Buka Tautan 👈</span>
+            </a>
+          </div>
+        </div>
+      `;
+      updateActiveMenu(element);
+    }
+
+    function openProtected(url, correctPin, element) {
+      const inputPin = prompt("Masukkan PIN Akses:");
+      if (inputPin === correctPin) {
+        loadFrame(url, element);
+      } else if (inputPin !== null) {
+        alert("PIN Salah! Akses ditolak.");
+      }
+    }
+
+    function updateActiveMenu(element) {
+      const menuLinks = document.querySelectorAll('.sidebar a');
+      menuLinks.forEach(l => l.classList.remove('active'));
+      element.classList.add('active');
+    }
+
+    function updateHeaderInfo() {
+      const now = new Date();
+      const hour = now.getHours();
+      let greetingText = "Selamat Malam";
+      if (hour >= 4 && hour < 11) greetingText = "Selamat Pagi";
+      else if (hour >= 11 && hour < 15) greetingText = "Selamat Siang";
+      else if (hour >= 15 && hour < 18) greetingText = "Selamat Sore";
+
+      document.getElementById('greeting').innerText = `${greetingText}, Team BBC! 👋`;
+
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('current-date').innerText = now.toLocaleDateString('id-ID', options);
+    }
+
+    function drawClock(canvasId, timeZone) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const radius = canvas.height / 2;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.translate(radius, radius);
+
+      const now = new Date();
+      const localTime = new Date(now.toLocaleString("en-US", { timeZone: timeZone }));
+
+      let hour = localTime.getHours();
+      let minute = localTime.getMinutes();
+      let second = localTime.getSeconds();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, radius - 2, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = '#222222';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.font = `bold ${radius * 0.28}px sans-serif`;
+      ctx.fillStyle = '#333333';
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      
+      ctx.fillText("12", 0, -radius * 0.68);
+      ctx.fillText("3", radius * 0.68, 0);
+      ctx.fillText("6", 0, radius * 0.68);
+      ctx.fillText("9", -radius * 0.68, 0);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 2, 0, 2 * Math.PI);
+      ctx.fillStyle = '#b71c1c';
+      ctx.fill();
+
+      hour = hour % 12;
+      hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
+      drawHand(ctx, hour, radius * 0.45, 2, '#222222');
+
+      minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
+      drawHand(ctx, minute, radius * 0.65, 1.5, '#555555');
+
+      second = (second * Math.PI / 30);
+      drawHand(ctx, second, radius * 0.75, 1, '#b71c1c');
+    }
+
+    function drawHand(ctx, pos, length, width, color) {
+      ctx.beginPath();
+      ctx.lineWidth = width;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = color;
+      ctx.moveTo(0, 0);
+      ctx.rotate(pos);
+      ctx.lineTo(0, -length);
+      ctx.stroke();
+      ctx.rotate(-pos);
+    }
+
+    function updateAllClocks() {
+      drawClock('clock-uk', 'Europe/London');
+      drawClock('clock-indo', 'Asia/Jakarta');
+      drawClock('clock-us', 'America/New_York');
+    }
+
+    setInterval(updateAllClocks, 1000);
+    updateAllClocks();
+    updateHeaderInfo();
+  </script>
+</body>
+</html>
