@@ -5,11 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>BBC Presensi</title>
   
-  <!-- Link Manifest untuk PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#b91c1c">
-  
-  <!-- Apple Touch Icon untuk iOS -->
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1xp4tsE6RhaxXFSC7XQN45_3TOdUsUe5j">
   
   <style>
@@ -24,14 +21,32 @@
   </style>
 </head>
 <body>
-  <!-- GANTI URL DI BAWAH DENGAN LINK GOOGLE APPS SCRIPT KAMU -->
-  <iframe src="https://script.google.com/macros/s/AKfycbxOKA4OtyYlRUjjdL6gUjotvcQkDDea3G5vqMwMGjkCNTOxlP5-nvD-SpfvIP5fA6c/exec"></iframe>
+  <!-- MASUKKAN LINK DEPLOYMENT GOOGLE APPS SCRIPT KAMU DI DALAM TANDA PETIK SRC DI BAWAH -->
+  <iframe id="gasIframe" src="https://script.google.com/macros/s/AKfycbxOKA4OtyYlRUjjdL6gUjotvcQkDDea3G5vqMwMGjkCNTOxlP5-nvD-SpfvIP5fA6c/exec"></iframe>
 
   <script>
-    // Register Service Worker sederhana untuk syarat PWA
+    // Register Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
     }
+
+    // Mencegah tombol Back keluar aplikasi tanpa konfirmasi
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+      const confirmExit = confirm("Are you sure you want to exit the application?");
+      if (confirmExit) {
+        history.back();
+      } else {
+        history.pushState(null, null, location.href);
+      }
+    };
+
+    // Konfirmasi saat halaman hendak ditutup/di-refresh
+    window.addEventListener("beforeunload", function (e) {
+      const confirmationMessage = "Are you sure you want to leave?";
+      (e || window.event).returnValue = confirmationMessage;
+      return confirmationMessage;
+    });
   </script>
 </body>
 </html>
