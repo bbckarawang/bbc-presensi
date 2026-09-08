@@ -3,31 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>BBC Presensi</title>
+  <title>BBC Teacher Portal</title>
   
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#b91c1c">
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1xp4tsE6RhaxXFSC7XQN45_3TOdUsUe5j">
   
+  <!-- FontAwesome untuk Icon Menu Bawah -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background-color: #b91c1c; }
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      overflow: hidden; 
+      background-color: #b91c1c; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Container untuk Iframe */
+    .app-container {
+      width: 100%;
+      height: calc(100% - 60px); /* Menyediakan space 60px untuk menu bawah */
+      position: relative;
+    }
+
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      display: none; /* Sembunyikan default, diatur via JS */
+    }
+
+    iframe.active {
       display: block;
+    }
+
+    /* Bottom Navigation Bar Styles */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background-color: #ffffff;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #e2e8f0;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 9999;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 6px 0;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .nav-item i {
+      font-size: 18px;
+      margin-bottom: 3px;
+    }
+
+    .nav-item.active {
+      color: #b91c1c;
+    }
+
+    .nav-item:active {
+      transform: scale(0.95);
     }
   </style>
 </head>
 <body>
-  <!-- MASUKKAN LINK DEPLOYMENT GOOGLE APPS SCRIPT KAMU DI DALAM TANDA PETIK SRC DI BAWAH -->
-  <iframe id="gasIframe" src="https://script.google.com/macros/s/AKfycbxOKA4OtyYlRUjjdL6gUjotvcQkDDea3G5vqMwMGjkCNTOxlP5-nvD-SpfvIP5fA6c/exec"></iframe>
+
+  <!-- CONTAINER UNTUK 3 LINK APPS SCRIPT -->
+  <div class="app-container">
+    <!-- 1. PRESENSI -->
+    <iframe id="framePresensi" class="active" src="https://script.google.com/macros/s/AKfycbxOKA4OtyYlRUjjdL6gUjotvcQkDDea3G5vqMwMGjkCNTOxlP5-nvD-SpfvIP5fA6c/exec"></iframe>
+    
+    <!-- 2. PROYEKTOR (Ganti URL di bawah dengan link GAS Proyektor kamu) -->
+    <iframe id="frameProyektor" src="https://bbc-proyektor.netlify.app/"></iframe>
+    
+    <!-- 3. JADWAL TEACHER (Ganti URL di bawah dengan link GAS Jadwal kamu) -->
+    <iframe id="frameJadwal" src="https://bbc-teacher.netlify.app/"></iframe>
+  </div>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('Presensi', this)">
+      <i class="fa-solid fa-clipboard-user"></i>
+      <span>Presensi</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Proyektor', this)">
+      <i class="fa-solid fa-video"></i>
+      <span>Proyektor</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Jadwal', this)">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span>Jadwal</span>
+    </button>
+  </nav>
 
   <script>
-    // Register Service Worker
+    // Register Service Worker PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+    }
+
+    // Fungsi Pindah Menu Tab
+    function switchTab(tabName, btnElement) {
+      // Sembunyikan semua iframe
+      document.querySelectorAll('iframe').forEach(iframe => {
+        iframe.classList.remove('active');
+      });
+
+      // Matikan status active semua tombol
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      // Tampilkan iframe yang dipilih dan beri warna tombol aktif
+      document.getElementById('frame' + tabName).classList.add('active');
+      btnElement.classList.add('active');
     }
 
     // Mencegah tombol Back keluar aplikasi tanpa konfirmasi
