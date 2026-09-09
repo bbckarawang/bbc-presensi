@@ -218,7 +218,7 @@
 
   <!-- BOTTOM NAVIGATION BAR -->
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="switchTab('Presensi', this)">
+    <button id="btnNavPresensi" class="nav-item active" onclick="switchTab('Presensi', this)">
       <i class="fa-solid fa-clipboard-user"></i>
       <span>Presensi</span>
     </button>
@@ -238,8 +238,8 @@
       <div class="modal-icon">
         <i class="fa-solid fa-door-open"></i>
       </div>
-      <h3>Keluar Aplikasi?</h3>
-      <p>Apakah Anda yakin ingin menutup aplikasi BBC Presensi?</p>
+      <h3>Keluar Akun?</h3>
+      <p>Apakah Anda yakin ingin mengakhiri sesi dan kembali ke halaman login awal?</p>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeExitModal()">Batal</button>
         <button class="btn-confirm" onclick="confirmExit()">Ya, Keluar</button>
@@ -252,6 +252,9 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
     }
+
+    // URL Asli Halaman Login Presensi
+    const PRESENSI_LOGIN_URL = "https://script.google.com/macros/s/AKfycbxOKA4OtyYlRUjjdL6gUjotvcQkDDea3G5vqMwMGjkCNTOxlP5-nvD-SpfvIP5fA6c/exec";
 
     // Fungsi Pindah Menu Tab
     function switchTab(tabName, btnElement) {
@@ -267,29 +270,33 @@
       btnElement.classList.add('active');
     }
 
-    // Penanganan Navigasi Back Sederhana
+    // Penanganan Modal Keluar & Navigasi Back
     const exitModal = document.getElementById('exitModal');
 
-    // Sisipkan 1 stack riwayat agar bisa ditangkap oleh event popstate
     history.pushState({ appRoot: true }, null, location.href);
 
     window.onpopstate = function () {
-      // Munculkan modal ketika tombol Back HP ditekan
       exitModal.classList.add('show');
     };
 
     function closeExitModal() {
       exitModal.classList.remove('show');
-      // Kembalikan stack riwayat agar tombol Back HP bisa memicu modal lagi nanti
       history.pushState({ appRoot: true }, null, location.href);
     }
 
     function confirmExit() {
       exitModal.classList.remove('show');
-      // Lepas event listener popstate
-      window.onpopstate = null;
-      // Eksekusi back untuk kembali ke posisi awal/luar aplikasi
-      history.back();
+
+      // 1. Reset iframe presensi kembali ke halaman login awal
+      const iframePresensi = document.getElementById('framePresensi');
+      iframePresensi.src = PRESENSI_LOGIN_URL;
+
+      // 2. Pindahkan tab aktif ke Presensi
+      const btnPresensi = document.getElementById('btnNavPresensi');
+      switchTab('Presensi', btnPresensi);
+
+      // 3. Jaga stack history agar penekanan back berikutnya tetap memunculkan modal
+      history.pushState({ appRoot: true }, null, location.href);
     }
   </script>
 </body>
