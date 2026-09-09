@@ -42,14 +42,14 @@
       width: 100%;
       height: 100%;
       border: none;
-      display: none; /* Sembunyikan default, diatur via JS */
+      display: none;
     }
 
     iframe.active {
       display: block;
     }
 
-    /* Bottom Navigation Bar Styles dengan Adaptasi Safe Area */
+    /* Bottom Navigation Bar Styles */
     .bottom-nav {
       width: 100%;
       background-color: #ffffff;
@@ -88,7 +88,6 @@
       transition: transform 0.2s ease;
     }
 
-    /* Highlight Menu Aktif */
     .nav-item.active {
       color: #b91c1c;
       background-color: #fef2f2;
@@ -102,7 +101,7 @@
       transform: scale(0.95);
     }
 
-    /* Styling Custom Modal Pop-up Keluar Application */
+    /* Styling Custom Modal Pop-up */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -268,42 +267,29 @@
       btnElement.classList.add('active');
     }
 
-    // Penanganan Modal Keluar & Navigasi Back
+    // Penanganan Navigasi Back Sederhana
     const exitModal = document.getElementById('exitModal');
 
-    // Sisipkan 1 stack khusus untuk menangkap gesture/tombol back HP
+    // Sisipkan 1 stack riwayat agar bisa ditangkap oleh event popstate
     history.pushState({ appRoot: true }, null, location.href);
 
     window.onpopstate = function () {
-      // Tampilkan modal saat tombol Back HP ditekan
+      // Munculkan modal ketika tombol Back HP ditekan
       exitModal.classList.add('show');
     };
 
     function closeExitModal() {
       exitModal.classList.remove('show');
-      // Kembalikan stack history agar pemicu tombol Back HP tetap aktif
+      // Kembalikan stack riwayat agar tombol Back HP bisa memicu modal lagi nanti
       history.pushState({ appRoot: true }, null, location.href);
     }
 
     function confirmExit() {
       exitModal.classList.remove('show');
-      
-      // Matikan handler popstate
+      // Lepas event listener popstate
       window.onpopstate = null;
-
-      // 1. Jika dijalankan di WebView / Android Native Wrapper
-      if (navigator.app && navigator.app.exitApp) {
-        navigator.app.exitApp();
-        return;
-      }
-
-      // 2. Coba metode penutupan jendela browser
-      window.close();
-
-      // 3. Eksekusi back 2 kali untuk melempar keluar aplikasi ke layar HP / browser asal
-      setTimeout(() => {
-        history.go(-2);
-      }, 50);
+      // Eksekusi back untuk kembali ke posisi awal/luar aplikasi
+      history.back();
     }
   </script>
 </body>
