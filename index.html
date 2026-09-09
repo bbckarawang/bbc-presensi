@@ -271,8 +271,8 @@
     // Penanganan Modal Keluar & Navigasi Back
     const exitModal = document.getElementById('exitModal');
 
-    // Sisipkan stack history untuk menjebak tombol back HP
-    history.pushState({ appPage: true }, null, location.href);
+    // Sisipkan 1 stack khusus untuk menangkap gesture/tombol back HP
+    history.pushState({ appRoot: true }, null, location.href);
 
     window.onpopstate = function () {
       // Tampilkan modal saat tombol Back HP ditekan
@@ -282,27 +282,28 @@
     function closeExitModal() {
       exitModal.classList.remove('show');
       // Kembalikan stack history agar pemicu tombol Back HP tetap aktif
-      history.pushState({ appPage: true }, null, location.href);
+      history.pushState({ appRoot: true }, null, location.href);
     }
 
     function confirmExit() {
       exitModal.classList.remove('show');
       
-      // Matikan pengawal popstate agar tidak muncul modal lagi saat mundur
+      // Matikan handler popstate
       window.onpopstate = null;
-      
-      // Coba tutup PWA/tab langsung
+
+      // 1. Jika dijalankan di WebView / Android Native Wrapper
+      if (navigator.app && navigator.app.exitApp) {
+        navigator.app.exitApp();
+        return;
+      }
+
+      // 2. Coba metode penutupan jendela browser
       window.close();
 
-      // Eksekusi mundur histori
+      // 3. Eksekusi back 2 kali untuk melempar keluar aplikasi ke layar HP / browser asal
       setTimeout(() => {
-        history.back();
+        history.go(-2);
       }, 50);
-
-      // Fallback: Jika PWA memblokir penutupan total, lempar ke halaman kosong
-      setTimeout(() => {
-        window.location.href = "about:blank";
-      }, 150);
     }
   </script>
 </body>
