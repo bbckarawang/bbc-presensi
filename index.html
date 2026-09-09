@@ -268,26 +268,37 @@
       btnElement.classList.add('active');
     }
 
-    // Logika Mencegah Keluar Sekali Klik & Menampilkan Modal Custom
+    // Penanganan Modal Keluar & Navigasi Back
     const exitModal = document.getElementById('exitModal');
 
-    // Menambahkan history awal agar popstate dapat ditangkap
-    history.pushState({ page: 'app' }, null, location.href);
+    // Menandai state root dan membuat stack tambahan untuk pemicu tombol Back
+    history.replaceState({ isRoot: true }, null, location.href);
+    history.pushState({ isModal: false }, null, location.href);
 
-    window.onpopstate = function () {
-      // Munculkan Modal Custom saat tombol Back di-klik
+    window.onpopstate = function (event) {
+      // Tampilkan modal saat tombol Back HP ditekan
       exitModal.classList.add('show');
     };
 
     function closeExitModal() {
       exitModal.classList.remove('show');
-      // Kembalikan status history agar tombol Back berikutnya bisa memicu event popstate lagi
-      history.pushState({ page: 'app' }, null, location.href);
+      // Kembalikan stack history agar tombol Back HP bisa digunakan lagi nanti
+      history.pushState({ isModal: false }, null, location.href);
     }
 
     function confirmExit() {
-      // Langsung keluar aplikasi/tutup histori tanpa perlu dua kali klik
-      window.history.go(-2);
+      exitModal.classList.remove('show');
+      
+      // Kembalikan histori ke posisi sebelum modal aktif
+      history.back();
+      
+      setTimeout(() => {
+        // Coba tutup jendela aplikasi PWA / tab
+        window.close();
+        
+        // Cadangan jika browser memblokir window.close(), lempar ke halaman sebelumnya
+        history.back();
+      }, 50);
     }
   </script>
 </body>
