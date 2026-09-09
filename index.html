@@ -49,7 +49,7 @@
       display: block;
     }
 
-    /* Bottom Navigation Bar Styles dengan Adaptasi Safe Area (iOS/Android Modern) */
+    /* Bottom Navigation Bar Styles dengan Adaptasi Safe Area */
     .bottom-nav {
       width: 100%;
       background-color: #ffffff;
@@ -233,7 +233,7 @@
     </button>
   </nav>
 
-  <!-- MODAL CONFIRMATION CUSTOM (GANTI ALERT DIALOG DEFAULT) -->
+  <!-- MODAL CONFIRMATION CUSTOM -->
   <div id="exitModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-icon">
@@ -271,34 +271,38 @@
     // Penanganan Modal Keluar & Navigasi Back
     const exitModal = document.getElementById('exitModal');
 
-    // Menandai state root dan membuat stack tambahan untuk pemicu tombol Back
-    history.replaceState({ isRoot: true }, null, location.href);
-    history.pushState({ isModal: false }, null, location.href);
+    // Sisipkan stack history untuk menjebak tombol back HP
+    history.pushState({ appPage: true }, null, location.href);
 
-    window.onpopstate = function (event) {
+    window.onpopstate = function () {
       // Tampilkan modal saat tombol Back HP ditekan
       exitModal.classList.add('show');
     };
 
     function closeExitModal() {
       exitModal.classList.remove('show');
-      // Kembalikan stack history agar tombol Back HP bisa digunakan lagi nanti
-      history.pushState({ isModal: false }, null, location.href);
+      // Kembalikan stack history agar pemicu tombol Back HP tetap aktif
+      history.pushState({ appPage: true }, null, location.href);
     }
 
     function confirmExit() {
       exitModal.classList.remove('show');
       
-      // Kembalikan histori ke posisi sebelum modal aktif
-      history.back();
+      // Matikan pengawal popstate agar tidak muncul modal lagi saat mundur
+      window.onpopstate = null;
       
+      // Coba tutup PWA/tab langsung
+      window.close();
+
+      // Eksekusi mundur histori
       setTimeout(() => {
-        // Coba tutup jendela aplikasi PWA / tab
-        window.close();
-        
-        // Cadangan jika browser memblokir window.close(), lempar ke halaman sebelumnya
         history.back();
       }, 50);
+
+      // Fallback: Jika PWA memblokir penutupan total, lempar ke halaman kosong
+      setTimeout(() => {
+        window.location.href = "about:blank";
+      }, 150);
     }
   </script>
 </body>
