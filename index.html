@@ -26,13 +26,16 @@
       overflow: hidden; 
       background-color: #b91c1c; 
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Container untuk Iframe */
+    /* Container Fleksibel untuk Iframe */
     .app-container {
+      flex: 1;
       width: 100%;
-      height: calc(100% - 60px); /* Menyediakan space 60px untuk menu bawah */
       position: relative;
+      background-color: #ffffff;
     }
 
     iframe {
@@ -46,13 +49,9 @@
       display: block;
     }
 
-    /* Bottom Navigation Bar Styles */
+    /* Bottom Navigation Bar Styles dengan Adaptasi Safe Area (iOS/Android Modern) */
     .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
+      width: 100%;
       background-color: #ffffff;
       display: flex;
       justify-content: space-around;
@@ -60,7 +59,8 @@
       border-top: 1px solid #e2e8f0;
       box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
       z-index: 9999;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+      padding-top: 6px;
+      padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
     }
 
     .nav-item {
@@ -71,40 +71,149 @@
       justify-content: center;
       color: #64748b;
       text-decoration: none;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       padding: 6px 0;
       transition: all 0.2s ease;
       cursor: pointer;
       background: none;
       border: none;
+      border-radius: 8px;
+      margin: 0 4px;
     }
 
     .nav-item i {
       font-size: 18px;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
+      transition: transform 0.2s ease;
     }
 
+    /* Highlight Menu Aktif */
     .nav-item.active {
       color: #b91c1c;
+      background-color: #fef2f2;
+    }
+
+    .nav-item.active i {
+      transform: scale(1.1);
     }
 
     .nav-item:active {
       transform: scale(0.95);
     }
+
+    /* Styling Custom Modal Pop-up Keluar Application */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(2px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      width: 85%;
+      max-width: 320px;
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      transform: scale(0.88);
+      transition: transform 0.2s ease;
+    }
+
+    .modal-overlay.show .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-icon {
+      width: 52px;
+      height: 52px;
+      background-color: #fee2e2;
+      color: #b91c1c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin: 0 auto 14px auto;
+    }
+
+    .modal-card h3 {
+      font-size: 18px;
+      color: #1e293b;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .modal-card p {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 11px 0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-cancel {
+      background-color: #f1f5f9;
+      color: #475569;
+    }
+
+    .btn-cancel:active {
+      background-color: #e2e8f0;
+    }
+
+    .btn-confirm {
+      background-color: #b91c1c;
+      color: #ffffff;
+    }
+
+    .btn-confirm:active {
+      background-color: #991b1b;
+    }
   </style>
 </head>
 <body>
 
-  <!-- CONTAINER UNTUK 3 LINK APPS SCRIPT -->
+  <!-- CONTAINER UNTUK 3 LINK IFRAME -->
   <div class="app-container">
     <!-- 1. PRESENSI -->
     <iframe id="framePresensi" class="active" src="https://script.google.com/macros/s/AKfycbxOKA4OtyYlRUjjdL6gUjotvcQkDDea3G5vqMwMGjkCNTOxlP5-nvD-SpfvIP5fA6c/exec"></iframe>
     
-    <!-- 2. PROYEKTOR (Ganti URL di bawah dengan link GAS Proyektor kamu) -->
+    <!-- 2. PROYEKTOR -->
     <iframe id="frameProyektor" src="https://bbc-proyektor.netlify.app/"></iframe>
     
-    <!-- 3. JADWAL TEACHER (Ganti URL di bawah dengan link GAS Jadwal kamu) -->
+    <!-- 3. JADWAL TEACHER -->
     <iframe id="frameJadwal" src="https://bbc-teacher.netlify.app/"></iframe>
   </div>
 
@@ -124,6 +233,21 @@
     </button>
   </nav>
 
+  <!-- MODAL CONFIRMATION CUSTOM (GANTI ALERT DIALOG DEFAULT) -->
+  <div id="exitModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-icon">
+        <i class="fa-solid fa-door-open"></i>
+      </div>
+      <h3>Keluar Aplikasi?</h3>
+      <p>Apakah Anda yakin ingin menutup aplikasi BBC Presensi?</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeExitModal()">Batal</button>
+        <button class="btn-confirm" onclick="confirmExit()">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Register Service Worker PWA
     if ('serviceWorker' in navigator) {
@@ -132,38 +256,39 @@
 
     // Fungsi Pindah Menu Tab
     function switchTab(tabName, btnElement) {
-      // Sembunyikan semua iframe
       document.querySelectorAll('iframe').forEach(iframe => {
         iframe.classList.remove('active');
       });
 
-      // Matikan status active semua tombol
       document.querySelectorAll('.nav-item').forEach(btn => {
         btn.classList.remove('active');
       });
 
-      // Tampilkan iframe yang dipilih dan beri warna tombol aktif
       document.getElementById('frame' + tabName).classList.add('active');
       btnElement.classList.add('active');
     }
 
-    // Mencegah tombol Back keluar aplikasi tanpa konfirmasi
-    history.pushState(null, null, location.href);
+    // Logika Mencegah Keluar Sekali Klik & Menampilkan Modal Custom
+    const exitModal = document.getElementById('exitModal');
+
+    // Menambahkan history awal agar popstate dapat ditangkap
+    history.pushState({ page: 'app' }, null, location.href);
+
     window.onpopstate = function () {
-      const confirmExit = confirm("Are you sure you want to exit the application?");
-      if (confirmExit) {
-        history.back();
-      } else {
-        history.pushState(null, null, location.href);
-      }
+      // Munculkan Modal Custom saat tombol Back di-klik
+      exitModal.classList.add('show');
     };
 
-    // Konfirmasi saat halaman hendak ditutup/di-refresh
-    window.addEventListener("beforeunload", function (e) {
-      const confirmationMessage = "Are you sure you want to leave?";
-      (e || window.event).returnValue = confirmationMessage;
-      return confirmationMessage;
-    });
+    function closeExitModal() {
+      exitModal.classList.remove('show');
+      // Kembalikan status history agar tombol Back berikutnya bisa memicu event popstate lagi
+      history.pushState({ page: 'app' }, null, location.href);
+    }
+
+    function confirmExit() {
+      // Langsung keluar aplikasi/tutup histori tanpa perlu dua kali klik
+      window.history.go(-2);
+    }
   </script>
 </body>
 </html>
