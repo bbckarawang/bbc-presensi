@@ -1,6 +1,7 @@
 {
   "name": "BBC Presensi System",
   "short_name": "BBC Presensi",
+  "version": "2.0",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f1f5f9",
