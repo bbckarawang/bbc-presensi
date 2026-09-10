@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#b91c1c">
   <link rel="apple-touch-icon" href="icon-presensi.png">
   <link rel="icon" type="image/png" href="icon-presensi.png">
-  <!-- FontAwesome untuk Icon Menu Bawah -->
+  <!-- FontAwesome untuk Icon Menu Bawah & Modal -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
@@ -101,7 +101,7 @@
       transform: scale(0.95);
     }
 
-    /* Styling Custom Modal Pop-up */
+    /* Styling Custom Modal Pop-up Universal */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -163,24 +163,35 @@
     .modal-card p {
       font-size: 13px;
       color: #64748b;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       line-height: 1.4;
     }
 
+    /* Tombol Aksi Modal */
     .modal-actions {
       display: flex;
       gap: 10px;
     }
 
-    .modal-actions button {
-      flex: 1;
-      padding: 11px 0;
+    .modal-actions-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-card button {
+      width: 100%;
+      padding: 12px 0;
       border-radius: 10px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       border: none;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .btn-cancel {
@@ -200,39 +211,101 @@
     .btn-confirm:active {
       background-color: #991b1b;
     }
+
+    .btn-secondary-option {
+      background-color: #f8fafc;
+      color: #334155;
+      border: 1px solid #e2e8f0 !important;
+    }
+
+    .btn-secondary-option:active {
+      background-color: #e2e8f0;
+    }
   </style>
 </head>
 <body>
 
-  <!-- CONTAINER UNTUK 3 LINK IFRAME -->
+  <!-- CONTAINER UNTUK SEMUA IFRAME LINK -->
   <div class="app-container">
-    <!-- 1. PRESENSI -->
+    <!-- 1. TAB PRESENSI -->
     <iframe id="framePresensi" class="active" src="https://script.google.com/macros/s/AKfycbxOKA4OtyYlRUjjdL6gUjotvcQkDDea3G5vqMwMGjkCNTOxlP5-nvD-SpfvIP5fA6c/exec"></iframe>
     
-    <!-- 2. PROYEKTOR -->
+    <!-- 2. SUB-MENU FASILITAS -->
     <iframe id="frameProyektor" src="https://bbc-proyektor.netlify.app/"></iframe>
-    
-    <!-- 3. JADWAL TEACHER -->
+    <iframe id="frameOrderATK" src="https://form.jotform.com/261953311400042"></iframe>
+    <iframe id="frameRekapATK" src="https://www.jotform.com/tables/261953311400042"></iframe>
+
+    <!-- 3. SUB-MENU AKADEMIK -->
     <iframe id="frameJadwal" src="https://bbc-teacher.netlify.app/"></iframe>
+    <iframe id="frameStokBuku" src="https://script.google.com/macros/s/AKfycbyu8sdJnDo0qEfKCNfMSnbLpA4dUiKfKWj_26rNh0FIU1xxCXGEv4tJ1lYM8Or-0hyW/exec"></iframe>
+    <iframe id="frameAlbum" src="https://script.google.com/macros/s/AKfycbwlDlmXtK4bVTiNjNlAz00iWvNVK5YSnznsaetRBX2j2pTGCZxHwLgRvHsvuAo1anw/exec"></iframe>
   </div>
 
-  <!-- BOTTOM NAVIGATION BAR -->
+  <!-- BOTTOM NAVIGATION BAR (3 MENU UTAMA) -->
   <nav class="bottom-nav">
-    <button id="btnNavPresensi" class="nav-item active" onclick="switchTab('Presensi', this)">
+    <button id="btnNavPresensi" class="nav-item active" onclick="switchToDirectTab('Presensi', this)">
       <i class="fa-solid fa-clipboard-user"></i>
       <span>Presensi</span>
     </button>
-    <button class="nav-item" onclick="switchTab('Proyektor', this)">
-      <i class="fa-solid fa-video"></i>
-      <span>Proyektor</span>
+    
+    <button id="btnNavFasilitas" class="nav-item" onclick="openModal('fasilitasModal')">
+      <i class="fa-solid fa-boxes-packing"></i>
+      <span>Fasilitas</span>
     </button>
-    <button class="nav-item" onclick="switchTab('Jadwal', this)">
-      <i class="fa-solid fa-calendar-days"></i>
-      <span>Jadwal</span>
+    
+    <button id="btnNavAkademik" class="nav-item" onclick="openModal('akademikModal')">
+      <i class="fa-solid fa-graduation-cap"></i>
+      <span>Akademik</span>
     </button>
   </nav>
 
-  <!-- MODAL CONFIRMATION CUSTOM -->
+  <!-- MODAL 1: SUB-MENU FASILITAS -->
+  <div id="fasilitasModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-icon">
+        <i class="fa-solid fa-boxes-packing"></i>
+      </div>
+      <h3>Menu Fasilitas</h3>
+      <p>Silakan pilih layanan fasilitas operasional yang dibutuhkan:</p>
+      <div class="modal-actions-vertical">
+        <button class="btn-confirm" onclick="selectSubMenu('Proyektor', 'btnNavFasilitas', 'fasilitasModal')">
+          <i class="fa-solid fa-video"></i> Order Proyektor
+        </button>
+        <button class="btn-secondary-option" onclick="selectSubMenu('OrderATK', 'btnNavFasilitas', 'fasilitasModal')">
+          <i class="fa-solid fa-pen-ruler"></i> Pemesanan ATK
+        </button>
+        <button class="btn-secondary-option" onclick="selectSubMenu('RekapATK', 'btnNavFasilitas', 'fasilitasModal')">
+          <i class="fa-solid fa-list-check"></i> Rekap Pengambilan ATK
+        </button>
+        <button class="btn-cancel" onclick="closeModal('fasilitasModal')">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: SUB-MENU AKADEMIK -->
+  <div id="akademikModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-icon">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <h3>Menu Akademik</h3>
+      <p>Silakan pilih menu akademik yang ingin dibuka:</p>
+      <div class="modal-actions-vertical">
+        <button class="btn-confirm" onclick="selectSubMenu('Jadwal', 'btnNavAkademik', 'akademikModal')">
+          <i class="fa-solid fa-calendar-days"></i> Jadwal Teacher
+        </button>
+        <button class="btn-secondary-option" onclick="selectSubMenu('StokBuku', 'btnNavAkademik', 'akademikModal')">
+          <i class="fa-solid fa-book-bookmark"></i> Update Stok Buku
+        </button>
+        <button class="btn-secondary-option" onclick="selectSubMenu('Album', 'btnNavAkademik', 'akademikModal')">
+          <i class="fa-solid fa-images"></i> Album Kegiatan KBM
+        </button>
+        <button class="btn-cancel" onclick="closeModal('akademikModal')">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: KELUAR AKUN / BACK BUTTON -->
   <div id="exitModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-icon">
@@ -256,21 +329,41 @@
     // URL Asli Halaman Login Presensi
     const PRESENSI_LOGIN_URL = "https://script.google.com/macros/s/AKfycbxOKA4OtyYlRUjjdL6gUjotvcQkDDea3G5vqMwMGjkCNTOxlP5-nvD-SpfvIP5fA6c/exec";
 
-    // Fungsi Pindah Menu Tab
-    function switchTab(tabName, btnElement) {
+    // Fungsi Membuka Modal
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('show');
+    }
+
+    // Fungsi Menutup Modal
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('show');
+    }
+
+    // Fungsi Langsung Pindah Tab (Presensi)
+    function switchToDirectTab(targetFrameId, btnElement) {
+      // Sembunyikan semua iframe
       document.querySelectorAll('iframe').forEach(iframe => {
         iframe.classList.remove('active');
       });
 
+      // Reset style tombol navigasi bawah
       document.querySelectorAll('.nav-item').forEach(btn => {
         btn.classList.remove('active');
       });
 
-      document.getElementById('frame' + tabName).classList.add('active');
+      // Tampilkan iframe target & aktifkan tombol
+      document.getElementById('frame' + targetFrameId).classList.add('active');
       btnElement.classList.add('active');
     }
 
-    // Penanganan Modal Keluar & Navigasi Back
+    // Fungsi Memilih Sub-Menu dari Modal Pop-up
+    function selectSubMenu(targetFrameId, parentNavBtnId, modalId) {
+      closeModal(modalId);
+      const parentNavBtn = document.getElementById(parentNavBtnId);
+      switchToDirectTab(targetFrameId, parentNavBtn);
+    }
+
+    // Penanganan Modal Keluar & Navigasi Back HP
     const exitModal = document.getElementById('exitModal');
 
     history.pushState({ appRoot: true }, null, location.href);
@@ -291,11 +384,11 @@
       const iframePresensi = document.getElementById('framePresensi');
       iframePresensi.src = PRESENSI_LOGIN_URL;
 
-      // 2. Pindahkan tab aktif ke Presensi
+      // 2. Pindahkan tab aktif kembali ke Presensi
       const btnPresensi = document.getElementById('btnNavPresensi');
-      switchTab('Presensi', btnPresensi);
+      switchToDirectTab('Presensi', btnPresensi);
 
-      // 3. Jaga stack history agar penekanan back berikutnya tetap memunculkan modal
+      // 3. Jaga stack history agar tombol back berikutnya tetap memunculkan modal
       history.pushState({ appRoot: true }, null, location.href);
     }
   </script>
