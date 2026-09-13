@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pusat Survey & Ulasan BBC</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDK untuk Komunikasi Realtime ke Proyektor -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- Library Generator QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f8fafc; color: #1e293b; padding: 16px; padding-bottom: 40px; }
+
+    .header-title { color: #b91c1c; font-size: 20px; font-weight: 800; margin-bottom: 4px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px; }
+    .header-sub { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+
+    /* Control Box Proyektor */
+    .projector-control-card {
+      background: #1e293b;
+      color: white;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .projector-info { font-size: 12px; }
+    .projector-info strong { color: #38bdf8; display: block; font-size: 13px; }
+    .btn-reset-projector {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-reset-projector:active { background: #dc2626; }
+
+    /* Box Petunjuk Penggunaan */
+    .guide-card {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #991b1b;
+    }
+    .guide-card h4 { font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .guide-card ul { padding-left: 18px; }
+    .guide-card li { margin-bottom: 6px; }
+    .guide-card code { background: #ffffff; padding: 2px 6px; border-radius: 4px; border: 1px solid #fca5a5; font-weight: bold; }
+
+    /* List Card Survey */
+    .survey-list { display: flex; flex-direction: column; gap: 14px; }
+    .survey-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .survey-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; color: #0f172a; }
+    .shortlink-badge {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: monospace;
+      font-weight: 700;
+      border: 1px solid #bae6fd;
+    }
+
+    /* Tombol Aksi */
+    .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+    .btn-action {
+      padding: 8px 4px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .btn-action:active { background: #e2e8f0; }
+    .btn-projector { background: #b91c1c; color: white; border-color: #991b1b; }
+    .btn-projector:active { background: #7f1d1d; }
+    
+    /* Tombol Hasil Rekap Khusus Teacher */
+    .btn-rekap {
+      width: 100%;
+      margin-top: 8px;
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1px dashed #94a3b8;
+      padding: 7px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Modal Pop-up QR Code HP */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999; opacity: 0; pointer-events: none; transition: 0.2s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: white; padding: 20px; border-radius: 16px; width: 85%; max-width: 300px;
+      text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    #qrcode-container { margin: 16px auto; display: flex; justify-content: center; }
+    .btn-close { width: 100%; padding: 10px; background: #e2e8f0; border: none; border-radius: 8px; font-weight: 700; color: #334155; }
+  </style>
+</head>
+<body>
+
+  <h2 class="header-title">Pusat Survey & Ulasan BBC</h2>
+  <p class="header-sub">Kelola dan bagikan tautan survey/ulasan secara praktis.</p>
+
+  <!-- Panel Kontrol Layar Proyektor -->
+  <div class="projector-control-card">
+    <div class="projector-info">
+      <span>Kontrol Layar Kelas:</span>
+      <strong>Proyektor Ready</strong>
+    </div>
+    <button class="btn-reset-projector" onclick="resetProjector()">
+      <i class="fa-solid fa-power-off"></i> Matikan Layar
+    </button>
+  </div>
+
+  <!-- Petunjuk Penggunaan -->
+  <div class="guide-card">
+    <h4><i class="fa-solid fa-lightbulb"></i> Petunjuk Penggunaan untuk Teacher:</h4>
+    <ul>
+      <li><b>Bagikan Link (WA):</b> Klik tombol <b>Salin</b> untuk mengirim link langsung ke grup chat kelas.</li>
+      <li><b>Tulis Manual:</b> Manfaatkan teks shortlink (misal <code>s.id/bbc...</code>) untuk ditulis di papan tulis jika jaringan murid terkendala.</li>
+      <li><b>Tampilkan Proyektor:</b> Buka <code>s.id/bbc-p</code> di laptop lalu klik tombol <b>Proyektor</b> pada survey. Untuk mengembalikan ke tampilan awal, klik <b>Matikan Layar</b> di atas.</li>
+      <li><b>Scan HP:</b> Klik tombol <b>QR HP</b> untuk memunculkan Barcode di layar HP jika ingin menghampiri murid satu per satu.</li>
+    </ul>
+  </div>
+
+  <!-- Daftar Shortlink Survey -->
+  <div class="survey-list">
+
+    <!-- Item 1 -->
+    <div class="survey-card">
+      <div class="card-top">
+        <span class="survey-name">📝 Survey Kepuasan Pelanggan Awal</span>
+        <span class="shortlink-badge">s.id/bbcskpawal</span>
+      </div>
+      <div class="action-grid">
+        <button class="btn-action" onclick="copyLink('https://s.id/bbcskpawal')"><i class="fa-regular fa-copy"></i> Salin</button>
+        <button class="btn-action" onclick="showHpQr('https://s.id/bbcskpawal', 'Survey Kepuasan Pelanggan Awal')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
+        <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcskpawal', 'Survey Kepuasan Pelanggan Awal', 'https://s.id/bbcskpawal')"><i class="fa-solid fa-display"></i> Proyektor</button>
+      </div>
+      <button class="btn-rekap" onclick="window.open('https://s.id/bbc-skp1', '_blank')">
+        <i class="fa-solid fa-chart-pie"></i> Lihat Hasil Survey (Appsheet)
+      </button>
+    </div>
+
+    <!-- Item 2 -->
+    <div class="survey-card">
+      <div class="card-top">
+        <span class="survey-name">🎓 Survey Kepuasan Pelanggan Akhir</span>
+        <span class="shortlink-badge">s.id/bbcskpakhir</span>
+      </div>
+      <div class="action-grid">
+        <button class="btn-action" onclick="copyLink('https://s.id/bbcskpakhir')"><i class="fa-regular fa-copy"></i> Salin</button>
+        <button class="btn-action" onclick="showHpQr('https://s.id/bbcskpakhir', 'Survey Kepuasan Pelanggan Akhir')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
+        <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcskpakhir', 'Survey Kepuasan Pelanggan Akhir', 'https://s.id/bbcskpakhir')"><i class="fa-solid fa-display"></i> Proyektor</button>
+      </div>
+      <button class="btn-rekap" onclick="window.open('https://s.id/bbc-skp2', '_blank')">
+        <i class="fa-solid fa-chart-pie"></i> Lihat Hasil Survey (Appsheet)
+      </button>
+    </div>
+
+    <!-- Item 3 -->
+    <div class="survey-card">
+      <div class="card-top">
+        <span class="survey-name">💡 Understanding Form</span>
+        <span class="shortlink-badge">s.id/bbcstart</span>
+      </div>
+      <div class="action-grid">
+        <button class="btn-action" onclick="copyLink('https://s.id/bbcstart')"><i class="fa-regular fa-copy"></i> Salin</button>
+        <button class="btn-action" onclick="showHpQr('https://s.id/bbcstart', 'Understanding Form')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
+        <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcstart', 'Understanding Form', 'https://s.id/bbcstart')"><i class="fa-solid fa-display"></i> Proyektor</button>
+      </div>
+      <button class="btn-rekap" onclick="window.open('https://s.id/bbc-check', '_blank')">
+        <i class="fa-solid fa-table-cells"></i> Lihat Hasil Survey (Appscript)
+      </button>
+    </div>
+
+    <!-- Item 4 -->
+    <div class="survey-card">
+      <div class="card-top">
+        <span class="survey-name">⭐ Review Google Maps</span>
+        <span class="shortlink-badge">s.id/bbcmaps</span>
+      </div>
+      <div class="action-grid">
+        <button class="btn-action" onclick="copyLink('https://s.id/bbcmaps')"><i class="fa-regular fa-copy"></i> Salin</button>
+        <button class="btn-action" onclick="showHpQr('https://s.id/bbcmaps', 'Review Google Maps')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
+        <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcmaps', 'Review Google Maps', 'https://s.id/bbcmaps')"><i class="fa-solid fa-display"></i> Proyektor</button>
+      </div>
+    </div>
+
+    <!-- Item 5 -->
+    <div class="survey-card">
+      <div class="card-top">
+        <span class="survey-name">👥 Survey Tamu</span>
+        <span class="shortlink-badge">s.id/bbcsurvey</span>
+      </div>
+      <div class="action-grid">
+        <button class="btn-action" onclick="copyLink('https://s.id/bbcsurvey')"><i class="fa-regular fa-copy"></i> Salin</button>
+        <button class="btn-action" onclick="showHpQr('https://s.id/bbcsurvey', 'Survey Tamu')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
+        <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcsurvey', 'Survey Tamu', 'https://s.id/bbcsurvey')"><i class="fa-solid fa-display"></i> Proyektor</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL POP-UP QR CODE HP -->
+  <div id="qrModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 id="modalTitle" style="font-size:15px; color:#1e293b;">-</h3>
+      <div id="qrcode-container"></div>
+      <p id="modalShortlink" style="font-family:monospace; font-weight:bold; color:#b91c1c; margin-bottom:14px; font-size:14px;"></p>
+      <button class="btn-close" onclick="closeQrModal()">Tutup</button>
+    </div>
+  </div>
+
+  <script>
+    // Konfigurasi Firebase Realtime Database
+    const firebaseConfig = {
+      databaseURL: "https://bbc-presensi-db-default-rtdb.firebaseio.com/"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.database();
+
+    // 1. Salin Link ke Clipboard
+    function copyLink(url) {
+      navigator.clipboard.writeText(url);
+      alert("Tautan berhasil disalin!");
+    }
+
+    // 2. Tampilkan QR Code di Screen HP
+    let qrcodeObj = null;
+    function showHpQr(url, title) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalShortlink').innerText = url.replace('https://', '');
+      
+      const qrContainer = document.getElementById('qrcode-container');
+      qrContainer.innerHTML = "";
+      qrcodeObj = new QRCode(qrContainer, {
+        text: url,
+        width: 180,
+        height: 180
+      });
+      
+      document.getElementById('qrModal').classList.add('show');
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.remove('show');
+    }
+
+    // 3. Kirim Sinyal Realtime ke Laptop / Proyektor
+    function sendToProjector(shortlink, title, fullUrl) {
+      db.ref('active_display').set({
+        title: title,
+        shortlink: shortlink,
+        fullUrl: fullUrl,
+        timestamp: Date.now()
+      }).then(() => {
+        alert("Berhasil dikirim ke Layar Proyektor!");
+      }).catch(err => {
+        alert("Gagal terhubung ke database. Pastikan koneksi internet aktif.");
+      });
+    }
+
+    // 4. Reset Proyektor ke Tampilan Standby Bawaan
+    function resetProjector() {
+      db.ref('active_display').set(null).then(() => {
+        alert("Layar Proyektor dikembalikan ke tampilan awal.");
+      }).catch(err => {
+        alert("Gagal mereset layar proyektor.");
+      });
+    }
+  </script>
+</body>
+</html>
