@@ -124,7 +124,7 @@
       gap: 6px;
     }
 
-    /* Modal Pop-up QR Code HP */
+    /* Modal Pop-up Umum */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
@@ -132,12 +132,44 @@
       z-index: 9999; opacity: 0; pointer-events: none; transition: 0.2s;
     }
     .modal-overlay.show { opacity: 1; pointer-events: auto; }
+    
+    /* Modal QR Code HP */
     .modal-card {
       background: white; padding: 20px; border-radius: 16px; width: 85%; max-width: 300px;
       text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
     #qrcode-container { margin: 16px auto; display: flex; justify-content: center; }
+
+    /* Modal Rekap iFrame khusus Mobile */
+    .modal-rekap-card {
+      background: white;
+      border-radius: 16px;
+      width: 95%;
+      max-width: 500px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .modal-rekap-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+    .rekap-iframe {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      transform: scale(0.95);
+      width: 100%;
+      height: 80vh;
+    }
+
     .btn-close { width: 100%; padding: 10px; background: #e2e8f0; border: none; border-radius: 8px; font-weight: 700; color: #334155; }
+    .btn-close-sm { padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
 
     /* Custom Toast Notification */
     .toast {
@@ -206,7 +238,8 @@
         <button class="btn-action" onclick="showHpQr('https://s.id/bbcskpawal', 'Survey Kepuasan Pelanggan Awal')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
         <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcskpawal', 'Survey Kepuasan Pelanggan Awal', 'https://s.id/bbcskpawal')"><i class="fa-solid fa-display"></i> Proyektor</button>
       </div>
-      <button class="btn-rekap" onclick="window.open('https://datastudio.google.com/reporting/5c145d7a-7ed4-46fd-9045-bc668e6a5504', '_blank')">
+      <!-- URL disesuaikan ke mode embed resmi Looker Studio -->
+      <button class="btn-rekap" onclick="openRekapModal('https://datastudio.google.com/embed/reporting/5c145d7a-7ed4-46fd-9045-bc668e6a5504/page/p_1', 'Hasil SKP Awal')">
         <i class="fa-solid fa-chart-pie"></i> Lihat Hasil Survey
       </button>
     </div>
@@ -222,7 +255,8 @@
         <button class="btn-action" onclick="showHpQr('https://s.id/bbcskpakhir', 'Survey Kepuasan Pelanggan Akhir')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
         <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcskpakhir', 'Survey Kepuasan Pelanggan Akhir', 'https://s.id/bbcskpakhir')"><i class="fa-solid fa-display"></i> Proyektor</button>
       </div>
-      <button class="btn-rekap" onclick="window.open('https://datastudio.google.com/reporting/5dedc8dc-b3e9-4076-a030-3c9ef9692f30', '_blank')">
+      <!-- URL disesuaikan ke mode embed resmi Looker Studio -->
+      <button class="btn-rekap" onclick="openRekapModal('https://datastudio.google.com/embed/reporting/5dedc8dc-b3e9-4076-a030-3c9ef9692f30/page/p_1', 'Hasil SKP Akhir')">
         <i class="fa-solid fa-chart-pie"></i> Lihat Hasil Survey
       </button>
     </div>
@@ -238,7 +272,7 @@
         <button class="btn-action" onclick="showHpQr('https://s.id/bbcstart', 'Understanding Form')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
         <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcstart', 'Understanding Form', 'https://s.id/bbcstart')"><i class="fa-solid fa-display"></i> Proyektor</button>
       </div>
-      <button class="btn-rekap" onclick="window.open('https://script.google.com/macros/s/AKfycbwlcaWoHVZvcr2JabMo1h1JnaOhgxKAx3EBGfWwPFQhcK-Fg1rS6aByWi6z5vkJm9vi/exec', '_blank')">
+      <button class="btn-rekap" onclick="openRekapModal('https://script.google.com/macros/s/AKfycbwlcaWoHVZvcr2JabMo1h1JnaOhgxKAx3EBGfWwPFQhcK-Fg1rS6aByWi6z5vkJm9vi/exec', 'Hasil Understanding Form')">
         <i class="fa-solid fa-table-cells"></i> Lihat Hasil Survey
       </button>
     </div>
@@ -278,6 +312,17 @@
       <div id="qrcode-container"></div>
       <p id="modalShortlink" style="font-family:monospace; font-weight:bold; color:#b91c1c; margin-bottom:14px; font-size:14px;"></p>
       <button class="btn-close" onclick="closeQrModal()">Tutup</button>
+    </div>
+  </div>
+
+  <!-- MODAL POP-UP KHUSUS REKAP SURVEY IFRAME -->
+  <div id="rekapModal" class="modal-overlay">
+    <div class="modal-rekap-card">
+      <div class="modal-rekap-header">
+        <h4 id="rekapTitle" style="font-size:14px; color:#0f172a;">Hasil Survey</h4>
+        <button class="btn-close-sm" onclick="closeRekapModal()">Tutup ✕</button>
+      </div>
+      <iframe id="rekapIframe" class="rekap-iframe" src="" frameborder="0"></iframe>
     </div>
   </div>
 
@@ -334,7 +379,19 @@
       document.getElementById('qrModal').classList.remove('show');
     }
 
-    // 3. Kirim Sinyal Realtime ke Laptop / Proyektor dengan Auto-Timer 30 Menit
+    // 3. Tampilkan Rekap Hasil Survey dalam Modal Pop-Up iFrame
+    function openRekapModal(url, title) {
+      document.getElementById('rekapTitle').innerText = title;
+      document.getElementById('rekapIframe').src = url;
+      document.getElementById('rekapModal').classList.add('show');
+    }
+
+    function closeRekapModal() {
+      document.getElementById('rekapModal').classList.remove('show');
+      document.getElementById('rekapIframe').src = ""; // Stop loading ketika ditutup
+    }
+
+    // 4. Kirim Sinyal Realtime ke Laptop / Proyektor dengan Auto-Timer 30 Menit
     function sendToProjector(shortlink, title, fullUrl) {
       const now = Date.now();
       db.ref('active_display').set({
@@ -356,7 +413,7 @@
       });
     }
 
-    // 4. Reset Proyektor Manual
+    // 5. Reset Proyektor Manual
     function resetProjector() {
       if (autoTimer) clearTimeout(autoTimer);
       db.ref('active_display').set(null).then(() => {
