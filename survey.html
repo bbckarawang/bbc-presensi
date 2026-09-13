@@ -138,6 +138,31 @@
     }
     #qrcode-container { margin: 16px auto; display: flex; justify-content: center; }
     .btn-close { width: 100%; padding: 10px; background: #e2e8f0; border: none; border-radius: 8px; font-weight: 700; color: #334155; }
+
+    /* Custom Toast Notification */
+    .toast {
+      visibility: hidden;
+      min-width: 220px;
+      background-color: #0f172a;
+      color: #ffffff;
+      text-align: center;
+      border-radius: 10px;
+      padding: 12px 16px;
+      position: fixed;
+      z-index: 99999;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -162,7 +187,7 @@
     <ul>
       <li><b>Bagikan Link (WA):</b> Klik tombol <b>Salin</b> untuk mengirim link langsung ke grup chat kelas.</li>
       <li><b>Tulis Manual:</b> Manfaatkan teks shortlink (misal <code>s.id/bbc...</code>) untuk ditulis di papan tulis jika jaringan murid terkendala.</li>
-      <li><b>Tampilkan Proyektor:</b> Buka <code>s.id/bbc-p</code> di laptop lalu klik tombol <b>Proyektor</b> pada survey. Untuk mengembalikan ke tampilan awal, klik <b>Matikan Layar</b> di atas.</li>
+      <li><b>Tampilkan Proyektor:</b> Buka <code>s.id/bbc-p</code> di laptop lalu klik tombol <b>Proyektor</b> pada survey. Layar otomatis mati setelah 30 menit.</li>
       <li><b>Scan HP:</b> Klik tombol <b>QR HP</b> untuk memunculkan Barcode di layar HP jika ingin menghampiri murid satu per satu.</li>
     </ul>
   </div>
@@ -181,8 +206,8 @@
         <button class="btn-action" onclick="showHpQr('https://s.id/bbcskpawal', 'Survey Kepuasan Pelanggan Awal')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
         <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcskpawal', 'Survey Kepuasan Pelanggan Awal', 'https://s.id/bbcskpawal')"><i class="fa-solid fa-display"></i> Proyektor</button>
       </div>
-      <button class="btn-rekap" onclick="window.open('https://s.id/bbc-skp1', '_blank')">
-        <i class="fa-solid fa-chart-pie"></i> Lihat Hasil Survey (Appsheet)
+      <button class="btn-rekap" onclick="window.open('https://datastudio.google.com/reporting/5c145d7a-7ed4-46fd-9045-bc668e6a5504', '_blank')">
+        <i class="fa-solid fa-chart-pie"></i> Lihat Hasil Survey
       </button>
     </div>
 
@@ -197,8 +222,8 @@
         <button class="btn-action" onclick="showHpQr('https://s.id/bbcskpakhir', 'Survey Kepuasan Pelanggan Akhir')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
         <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcskpakhir', 'Survey Kepuasan Pelanggan Akhir', 'https://s.id/bbcskpakhir')"><i class="fa-solid fa-display"></i> Proyektor</button>
       </div>
-      <button class="btn-rekap" onclick="window.open('https://s.id/bbc-skp2', '_blank')">
-        <i class="fa-solid fa-chart-pie"></i> Lihat Hasil Survey (Appsheet)
+      <button class="btn-rekap" onclick="window.open('https://datastudio.google.com/reporting/5dedc8dc-b3e9-4076-a030-3c9ef9692f30', '_blank')">
+        <i class="fa-solid fa-chart-pie"></i> Lihat Hasil Survey
       </button>
     </div>
 
@@ -213,15 +238,15 @@
         <button class="btn-action" onclick="showHpQr('https://s.id/bbcstart', 'Understanding Form')"><i class="fa-solid fa-qrcode"></i> QR HP</button>
         <button class="btn-action btn-projector" onclick="sendToProjector('s.id/bbcstart', 'Understanding Form', 'https://s.id/bbcstart')"><i class="fa-solid fa-display"></i> Proyektor</button>
       </div>
-      <button class="btn-rekap" onclick="window.open('https://s.id/bbc-check', '_blank')">
-        <i class="fa-solid fa-table-cells"></i> Lihat Hasil Survey (Appscript)
+      <button class="btn-rekap" onclick="window.open('https://script.google.com/macros/s/AKfycbwlcaWoHVZvcr2JabMo1h1JnaOhgxKAx3EBGfWwPFQhcK-Fg1rS6aByWi6z5vkJm9vi/exec', '_blank')">
+        <i class="fa-solid fa-table-cells"></i> Lihat Hasil Survey
       </button>
     </div>
 
     <!-- Item 4 -->
     <div class="survey-card">
       <div class="card-top">
-        <span class="survey-name">⭐ Review Google Maps</span>
+        <span class="survey-name">📍 Review Google Maps</span>
         <span class="shortlink-badge">s.id/bbcmaps</span>
       </div>
       <div class="action-grid">
@@ -234,7 +259,7 @@
     <!-- Item 5 -->
     <div class="survey-card">
       <div class="card-top">
-        <span class="survey-name">👥 Survey Tamu</span>
+        <span class="survey-name">📋 Survey Tamu</span>
         <span class="shortlink-badge">s.id/bbcsurvey</span>
       </div>
       <div class="action-grid">
@@ -256,6 +281,9 @@
     </div>
   </div>
 
+  <!-- Toast Notification Box -->
+  <div id="toast" class="toast">Pesan Notifikasi</div>
+
   <script>
     // Konfigurasi Firebase Realtime Database
     const firebaseConfig = {
@@ -264,10 +292,25 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.database();
 
+    let autoTimer = null;
+
+    // Fungsi Notifikasi Toast Bawaan (Pengganti Alert)
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.innerText = message;
+      toast.className = "toast show";
+      setTimeout(() => { 
+        toast.className = toast.className.replace("toast show", "toast"); 
+      }, 2500);
+    }
+
     // 1. Salin Link ke Clipboard
     function copyLink(url) {
-      navigator.clipboard.writeText(url);
-      alert("Tautan berhasil disalin!");
+      navigator.clipboard.writeText(url).then(() => {
+        showToast("Tautan berhasil disalin!");
+      }).catch(() => {
+        showToast("Gagal menyalin tautan.");
+      });
     }
 
     // 2. Tampilkan QR Code di Screen HP
@@ -291,28 +334,60 @@
       document.getElementById('qrModal').classList.remove('show');
     }
 
-    // 3. Kirim Sinyal Realtime ke Laptop / Proyektor
+    // 3. Kirim Sinyal Realtime ke Laptop / Proyektor dengan Auto-Timer 30 Menit
     function sendToProjector(shortlink, title, fullUrl) {
+      const now = Date.now();
       db.ref('active_display').set({
         title: title,
         shortlink: shortlink,
         fullUrl: fullUrl,
-        timestamp: Date.now()
+        timestamp: now
       }).then(() => {
-        alert("Berhasil dikirim ke Layar Proyektor!");
+        showToast("Berhasil dikirim ke Proyektor!");
+        
+        // Timer otomatis 30 menit (30 * 60 * 1000 ms)
+        if (autoTimer) clearTimeout(autoTimer);
+        autoTimer = setTimeout(() => {
+          resetProjectorAuto();
+        }, 1800000);
+
       }).catch(err => {
-        alert("Gagal terhubung ke database. Pastikan koneksi internet aktif.");
+        showToast("Gagal terhubung ke database.");
       });
     }
 
-    // 4. Reset Proyektor ke Tampilan Standby Bawaan
+    // 4. Reset Proyektor Manual
     function resetProjector() {
+      if (autoTimer) clearTimeout(autoTimer);
       db.ref('active_display').set(null).then(() => {
-        alert("Layar Proyektor dikembalikan ke tampilan awal.");
+        showToast("Layar Proyektor dimatikan.");
       }).catch(err => {
-        alert("Gagal mereset layar proyektor.");
+        showToast("Gagal mereset layar.");
       });
     }
+
+    // Auto Reset jika mencapai 30 menit
+    function resetProjectorAuto() {
+      db.ref('active_display').set(null).then(() => {
+        showToast("Timer 30m habis. Proyektor diset Standby.");
+      });
+    }
+
+    // Cek otomatis saat aplikasi dibuka jika data di Firebase sudah berusia > 30 menit
+    db.ref('active_display').once('value', snapshot => {
+      const data = snapshot.val();
+      if (data && data.timestamp) {
+        const timePassed = Date.now() - data.timestamp;
+        if (timePassed >= 1800000) {
+          resetProjectorAuto();
+        } else {
+          // Lanjutkan sisa waktu timer jika ada
+          autoTimer = setTimeout(() => {
+            resetProjectorAuto();
+          }, 1800000 - timePassed);
+        }
+      }
+    });
   </script>
 </body>
 </html>
